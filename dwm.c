@@ -88,6 +88,7 @@ struct Client {
 	char name[256];
 	float mina, maxa;
 	int x, y, w, h;
+	int fx, fy, fw, fh;
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
@@ -126,7 +127,6 @@ struct Monitor {
 	Client *stack;
 	Monitor *next;
 	Window barwin;
-	//unsigned int sellt;
 	const Layout *prev_lt, *lt;
 };
 
@@ -634,10 +634,7 @@ createmon(void)
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->topbar = topbar;
-	//m->lt[0] = &layouts[0];
-	//m->lt[1] = &layouts[1 % LENGTH(layouts)];
-	m->prev_lt = &layouts[0];
-	m->lt = &layouts[0];
+	m->prev_lt = m->lt = &layouts[0];
   return m;
 }
 
@@ -1045,6 +1042,10 @@ manage(Window w, XWindowAttributes *wa)
 	/* only fix client y-offset, if the client center might cover the bar */
 	c->y = MAX(c->y, ((c->mon->by == c->mon->my) && (c->x + (c->w / 2) >= c->mon->wx)
 		&& (c->x + (c->w / 2) < c->mon->wx + c->mon->ww)) ? bh : c->mon->my);
+	c->fx = c->x;
+	c->fy = c->y;
+	c->fw = c->w;
+	c->fh = c->h;
 	c->bw = borderpx;
 
 	wc.border_width = c->bw;
@@ -1496,16 +1497,6 @@ setfullscreen(Client *c, int fullscreen)
 void
 setlayout(const Arg *arg)
 {
-  /*
-	if (!arg || !arg->v || arg->v != selmon->lt[selmon->sellt])
-		selmon->sellt ^= 1;
-	if (arg && arg->v)
-		selmon->lt[selmon->sellt] = (Layout *)arg->v;
-	if (selmon->sel)
-		arrange(selmon);
-	else
-		drawbar(selmon);
-  */
   if (!selmon->sel)
     return;
 	else if (!arg || !arg->v)
@@ -1724,8 +1715,15 @@ togglefloating(const Arg *arg)
 		return;
 	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
 	if (selmon->sel->isfloating)
-		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
-			selmon->sel->w, selmon->sel->h, 0);
+		resize(selmon->sel, selmon->sel->fx, selmon->sel->fy,
+			selmon->sel->fw, selmon->sel->fh, False);
+	else {
+		selmon->sel->fx = selmon->sel->x;
+		selmon->sel->fy = selmon->sel->y;
+		selmon->sel->fw = selmon->sel->w;
+		selmon->sel->fh = selmon->sel->h;
+	}
+  
 	arrange(selmon);
 }
 
