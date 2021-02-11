@@ -111,16 +111,20 @@ typedef struct {
 	void (*arrange)(Monitor *);
 } Layout;
 
-struct Monitor {
+typedef struct
+{
 	float mfact;
 	int nmaster;
+	int showbar;
+} Tag;
+
+struct Monitor {
 	int num;
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
 	unsigned int seltags;
 	unsigned int tagset[2];
-	int showbar;
 	int topbar;
 	Client *clients;
 	Client *sel;
@@ -128,6 +132,7 @@ struct Monitor {
 	Monitor *next;
 	Window barwin;
 	const Layout *prev_lt, *lt;
+  Tag *T;  
 };
 
 typedef struct {
@@ -962,7 +967,9 @@ void
 incnmaster(const Arg *arg)
 {
 	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
+	selmon->lt = &layouts[1];
 	arrange(selmon);
+	selmon->lt = &layouts[0];
 }
 
 #ifdef XINERAMA
@@ -1518,13 +1525,15 @@ setmfact(const Arg *arg)
 {
 	float f;
 
-	if (!arg || !selmon->lt->arrange)
+	if (!arg)
 		return;
 	f = arg->f < 1.0 ? arg->f + selmon->mfact : arg->f - 1.0;
 	if (f < 0.1 || f > 0.9)
 		return;
 	selmon->mfact = f;
+	selmon->lt = &layouts[1];
 	arrange(selmon);
+	selmon->lt = &layouts[0];
 }
 
 void
