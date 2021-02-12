@@ -420,7 +420,7 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x, click;
+	unsigned int i, x, click, occ = 0;
 	Arg arg = {0};
 	Client *c;
 	Monitor *m;
@@ -435,9 +435,14 @@ buttonpress(XEvent *e)
 	}
 	if (ev->window == selmon->barwin) {
 		i = x = 0;
-		do
+		for (c = m->clients; c; c = c->next)
+			occ |= c->tags;
+    
+		do {
+    	if (!(occ & 1 << i || selmon->tagset[selmon->seltags] & 1 << i))
+      	continue;
 			x += TEXTW(selmon->T[i].name);
-		while (ev->x >= x && ++i < Ntags);
+ 		 } while (ev->x >= x && ++i < Ntags);
 		if (i < Ntags) {
 			click = ClkTagBar;
 			arg.ui = 1 << i;
