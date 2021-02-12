@@ -972,7 +972,8 @@ grabkeys(void)
 void
 incnmaster(const Arg *arg)
 {
-	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
+  Tag *t = &selmon->T[selmon->seltags];
+	t->nmaster = MAX(t->nmaster + arg->i, 0);
 	selmon->lt = &layouts[1];
 	arrange(selmon);
 	selmon->lt = &layouts[0];
@@ -1514,13 +1515,13 @@ setlayout(const Arg *arg)
     return;
 	else if (!arg || !arg->v)
 	{
-    selmon->prev_lt++;
-    if (selmon->prev_lt - layouts > LENGTH(layouts) - 1)
-      selmon->prev_lt = &layouts[1];
-    selmon->lt = selmon->prev_lt;
+    selmon->prevlt++;
+    if (selmon->prevlt - layouts > LENGTH(layouts) - 1)
+      selmon->prevlt = &layouts[1];
+    selmon->lt = selmon->prevlt;
   }
 	else
-    selmon->prev_lt = selmon->lt = (Layout *)arg->v;
+    selmon->prevlt = selmon->lt = (Layout *)arg->v;
 	arrange(selmon);
 	selmon->lt = &layouts[0];
 }
@@ -1533,10 +1534,11 @@ setmfact(const Arg *arg)
 
 	if (!arg)
 		return;
-	f = arg->f < 1.0 ? arg->f + selmon->mfact : arg->f - 1.0;
+  Tag *t = &selmon->T[selmon->seltags];
+	f = arg->f < 1.0 ? arg->f + t->mfact : arg->f - 1.0;
 	if (f < 0.1 || f > 0.9)
 		return;
-	selmon->mfact = f;
+	t->mfact = f;
 	selmon->lt = &layouts[1];
 	arrange(selmon);
 	selmon->lt = &layouts[0];
@@ -1696,13 +1698,14 @@ tile(Monitor *m)
 	if (n == 0)
 		return;
 
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
+  Tag *t = &m->T[m->seltags];
+	if (n > t->nmaster)
+		mw = t->nmaster ? m->ww * t->mfact : 0;
 	else
 		mw = m->ww;
 	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
+		if (i < t->nmaster) {
+			h = (m->wh - my) / (MIN(n, t->nmaster) - i);
 			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
 			my += HEIGHT(c);
 		} else {
@@ -1715,7 +1718,8 @@ tile(Monitor *m)
 void
 togglebar(const Arg *arg)
 {
-	selmon->showbar = !selmon->showbar;
+  Tag *t = &selmon->T[selmon->seltags];
+	t->showbar = !t->showbar;
 	updatebarpos(selmon);
 	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
 	arrange(selmon);
@@ -1848,7 +1852,8 @@ updatebarpos(Monitor *m)
 {
 	m->wy = m->my;
 	m->wh = m->mh;
-	if (m->showbar) {
+  Tag *t = &m->T[m->seltags];
+	if (t->showbar) {
 		m->wh -= bh;
 		m->by = m->topbar ? m->wy : m->wy + m->wh;
 		m->wy = m->topbar ? m->wy + bh : m->wy;
