@@ -131,8 +131,8 @@ struct Monitor {
 	Client *stack;
 	Monitor *next;
 	Window barwin;
-	const Layout *prev_lt, *lt;
-  Tag *T;  
+	const Layout *prevlt, *lt; // *lt[2];
+  Tag *T; 
 };
 
 typedef struct {
@@ -276,6 +276,7 @@ static Window root, wmcheckwin;
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[LENGTH(tags) > 31 ? -1 : 1]; };
+Tag T[LENGTH(tags)];
 
 /* function implementations */
 void
@@ -635,11 +636,16 @@ createmon(void)
 
 	m = ecalloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
-	m->mfact = mfact;
-	m->nmaster = nmaster;
-	m->showbar = showbar;
-	m->topbar = topbar;
-	m->prev_lt = m->lt = &layouts[0];
+  m->T = T;
+  for (unsigned i = 0; i < LENGTH(tags); i++)
+  {
+		m->T[i].mfact = mfact;
+		m->T[i].nmaster = nmaster;
+		m->T[i].showbar = showbar;
+  }
+
+  m->topbar = topbar;
+	m->prevlt = m->lt = &layouts[0];
   return m;
 }
 
