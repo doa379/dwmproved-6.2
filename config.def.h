@@ -41,6 +41,7 @@ static const Layout layouts[] = {
 	{ NULL },    /* no layout function means floating behavior */
 	{ tile },
 	{ monocle },
+  //{ fullscreen }, no border, no bar
   //{ triple },
   //{ grid },
 };
@@ -74,14 +75,21 @@ static Key keys[] = {
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_grave,  view,           {0} },
-	//{ MODKEY,                       XK_Tab,    view,           {0} },
+/*
+  { MODKEY|ShiftMask,             XK_Tab,    focusview,      {.i = -1 } },
+	{ MODKEY,                       XK_Tab,    focusview,      {.i = +1 } },
+  { MODKEY,                       XK_bracketleft, occview,   {.i = -1 } },
+	{ MODKEY,                       XK_bracketright, occview,  {.i = +1 } },
+	{ MODKEY,                       XK_minus,  shiftview,      {.i = -1 } },
+	{ MODKEY,                       XK_equal,  shiftview,      {.i = +1 } },
+*/
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_f,      togglefloating, {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
-	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
-	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
+	{ MODKEY,                       XK_BackSpace, view,        {.ui = ~0 } },
+	{ MODKEY|ShiftMask,             XK_BackSpace, tag,         {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
@@ -95,7 +103,7 @@ static Key keys[] = {
 	TAGKEYS(                        XK_6,                      6)
 	TAGKEYS(                        XK_7,                      7)
 	TAGKEYS(                        XK_8,                      8)
-	TAGKEYS(                        XK_9,                      0)
+	TAGKEYS(                        XK_9,                      9)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
 };
 

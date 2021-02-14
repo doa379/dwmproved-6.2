@@ -114,7 +114,8 @@ typedef struct {
 
 typedef struct
 {
-  char name[4];
+  unsigned n;
+  char name[16], sel[8];
 	float mfact;
 	int nmaster;
 	int showbar;
@@ -125,8 +126,8 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int seltags;
-	unsigned int tagset[2];
+	unsigned int seltags;   //
+	unsigned int tagset[2]; //
 	int topbar;
 	Client *clients;
 	Client *sel;
@@ -244,7 +245,7 @@ static const char broken[] = "broken";
 static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
-static int bh, blw = 0;      /* bar geometry */
+static int bh;               /* bar geometry */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
@@ -644,7 +645,8 @@ createmon(void)
 	m->tagset[0] = m->tagset[1] = 1;
   for (unsigned i = 0; i < Ntags; i++)
   {
-    snprintf(m->T[i].name, sizeof m->T[i].name, "%d", i);
+		m->T[i].n = i;
+   	//snprintf(m->T[i].name, sizeof m->T[i].name, "%d:", i);
 		m->T[i].mfact = mfact;
 		m->T[i].nmaster = nmaster;
 		m->T[i].showbar = showbar;
@@ -723,34 +725,35 @@ drawbar(Monitor *m)
 		occ |= c->tags;
 		if (c->isurgent)
 			urg |= c->tags;
-	}
+  }
 	x = 0;
 	for (i = 0; i < Ntags; i++) {
-    if (!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
-      continue;
-		w = TEXTW(selmon->T[i].name);
-		drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, selmon->T[i].name, urg & 1 << i);
-		if (occ & 1 << i)
-			drw_rect(drw, x + boxs, boxs, boxw, boxw,
-				m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
-				urg & 1 << i);
-		x += w;
+    if (!(occ & 1 << i))
+    {
+    	if (m->tagset[m->seltags] & 1 << i)
+      	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:", selmon->T[i].n);
+      else
+        continue;
+    }
+		else if (m->tagset[m->seltags] & 1 << i && m->sel)
+    {
+    	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:%s", selmon->T[i].n, m->sel->name);
+      strcpy(selmon->T[i].sel, m->sel->name);
+    }
+    else
+    	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:%s", selmon->T[i].n, selmon->T[i].sel);
+    
+    w = TEXTW(selmon->T[i].name);
+    drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+    drw_text(drw, x, 0, w, bh, lrpad / 2, selmon->T[i].name, urg & 1 << i);
+    /* drw_rect(drw, x + boxs, boxs, boxw, boxw,
+       m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
+       urg & 1 << i); */
+    x += w;
 	}
-	w = blw = 0;
 	drw_setscheme(drw, scheme[SchemeNorm]);
-
-	if ((w = m->ww - sw - x) > bh) {
-		if (m->sel) {
-			drw_setscheme(drw, scheme[m == selmon ? SchemeSel : SchemeNorm]);
-			drw_text(drw, x, 0, w, bh, lrpad / 2, m->sel->name, 0);
-			if (m->sel->isfloating)
-				drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
-		} else {
-			drw_setscheme(drw, scheme[SchemeNorm]);
-			drw_rect(drw, x, 0, w, bh, 1, 1);
-		}
-	}
+	w = m->ww - sw - x;
+	drw_rect(drw, x, 0, w, bh, 1, 1);
 	drw_map(drw, m->barwin, 0, 0, m->ww, bh);
 }
 
@@ -1122,12 +1125,8 @@ maprequest(XEvent *e)
 void
 monocle(Monitor *m)
 {
-	unsigned int n = 0;
 	Client *c;
 
-	for (c = m->clients; c; c = c->next)
-		if (ISVISIBLE(c))
-			n++;
 	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
 		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
 }
