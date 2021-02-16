@@ -86,7 +86,7 @@ typedef struct {
 typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
-	char name[256];
+	char name[32];
 	float mina, maxa;
 	int x, y, w, h;
 	int fx, fy, fw, fh;
@@ -114,11 +114,9 @@ typedef struct {
 
 typedef struct
 {
-  unsigned n;
-  char name[16], sel[8];
+  char name[48], sel[32];
 	float mfact;
 	int nmaster;
-	int showbar;
 } Tag;
 
 struct Monitor {
@@ -126,8 +124,9 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int seltags;   //
-	unsigned int tagset[2]; //
+	unsigned int seltags;
+	unsigned int tagset[2];
+  unsigned int showbar;
 	int topbar;
 	Client *clients;
 	Client *sel;
@@ -135,7 +134,7 @@ struct Monitor {
 	Monitor *next;
 	Window barwin;
 	const Layout *lt[2];
-  Tag T[Ntags]; 
+  Tag T[Ntags];
 };
 
 typedef struct {
@@ -239,6 +238,7 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
+static unsigned tagidx(Monitor *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -645,14 +645,16 @@ createmon(void)
 	m->tagset[0] = m->tagset[1] = 1;
   for (unsigned i = 0; i < Ntags; i++)
   {
-		m->T[i].n = i;
-   	//snprintf(m->T[i].name, sizeof m->T[i].name, "%d:", i);
+    m->T[i].sel[0] = '\0';
 		m->T[i].mfact = mfact;
 		m->T[i].nmaster = nmaster;
-		m->T[i].showbar = showbar;
   }
 
   m->topbar = topbar;
+  if (showbar == 1)
+  	m->showbar = (1 << (Ntags + 1)) - 1;
+  else
+    m->showbar = 0;
 	m->lt[0] = m->lt[1] = &layouts[0];
   return m;
 }
@@ -731,24 +733,27 @@ drawbar(Monitor *m)
     if (!(occ & 1 << i))
     {
     	if (m->tagset[m->seltags] & 1 << i)
-      	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:", selmon->T[i].n);
+      	snprintf(m->T[i].name, sizeof m->T[i].name - 1, "%d:", i);
       else
         continue;
     }
 		else if (m->tagset[m->seltags] & 1 << i && m->sel)
     {
-    	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:%s", selmon->T[i].n, m->sel->name);
-      strcpy(selmon->T[i].sel, m->sel->name);
+    	snprintf(m->T[i].name, sizeof m->T[i].name - 1, "%d:%s", i, m->sel->name);
+      strcpy(m->T[i].sel, m->sel->name);
     }
     else
-    	snprintf(selmon->T[i].name, sizeof selmon->T[i].name, "%d:%s", selmon->T[i].n, selmon->T[i].sel);
+    	snprintf(m->T[i].name, (sizeof m->T[i].name - 1) / 2, "%d:%s", i, m->T[i].sel);
     
-    w = TEXTW(selmon->T[i].name);
+    w = TEXTW(m->T[i].name);
     drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-    drw_text(drw, x, 0, w, bh, lrpad / 2, selmon->T[i].name, urg & 1 << i);
+    drw_text(drw, x, 0, w, bh, lrpad / 2, m->T[i].name, urg & 1 << i);
     /* drw_rect(drw, x + boxs, boxs, boxw, boxw,
        m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
        urg & 1 << i); */
+
+		if (m->tagset[m->seltags] & 1 << i && m->sel && m->sel->isfloating)
+    	drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
     x += w;
 	}
 	drw_setscheme(drw, scheme[SchemeNorm]);
@@ -981,7 +986,7 @@ grabkeys(void)
 void
 incnmaster(const Arg *arg)
 {
-  Tag *t = &selmon->T[selmon->seltags];
+  Tag *t = &selmon->T[tagidx(selmon)];
 	t->nmaster = MAX(t->nmaster + arg->i, 0);
 	selmon->lt[1] = &layouts[1];
 	arrange(selmon);
@@ -1539,7 +1544,7 @@ setmfact(const Arg *arg)
 
 	if (!arg)
 		return;
-  Tag *t = &selmon->T[selmon->seltags];
+  Tag *t = &selmon->T[tagidx(selmon)];
 	f = arg->f < 1.0 ? arg->f + t->mfact : arg->f - 1.0;
 	if (f < 0.1 || f > 0.9)
 		return;
@@ -1568,7 +1573,7 @@ setup(void)
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
-	bh = drw->fonts->h + 2;
+	bh = drw->fonts->h;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -1703,7 +1708,7 @@ tile(Monitor *m)
 	if (n == 0)
 		return;
 
-  Tag *t = &m->T[m->seltags];
+  Tag *t = &m->T[tagidx(m)];
 	if (n > t->nmaster)
 		mw = t->nmaster ? m->ww * t->mfact : 0;
 	else
@@ -1723,8 +1728,7 @@ tile(Monitor *m)
 void
 togglebar(const Arg *arg)
 {
-  Tag *t = &selmon->T[selmon->seltags];
-	t->showbar = !t->showbar;
+  selmon->showbar ^= selmon->tagset[selmon->seltags];
 	updatebarpos(selmon);
 	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
 	arrange(selmon);
@@ -1857,8 +1861,7 @@ updatebarpos(Monitor *m)
 {
 	m->wy = m->my;
 	m->wh = m->mh;
-  Tag *t = &m->T[m->seltags];
-	if (t->showbar) {
+	if (m->showbar & m->tagset[m->seltags]) {
 		m->wh -= bh;
 		m->by = m->topbar ? m->wy : m->wy + m->wh;
 		m->wy = m->topbar ? m->wy + bh : m->wy;
@@ -2073,7 +2076,10 @@ view(const Arg *arg)
 	selmon->seltags ^= 1; /* toggle sel tagset */
 	if (arg->ui & TAGMASK)
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
-	focus(NULL);
+
+	updatebarpos(selmon);
+	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
+  focus(NULL);
 	arrange(selmon);
 }
 
@@ -2179,4 +2185,14 @@ main(int argc, char *argv[])
 	cleanup();
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
+}
+
+unsigned
+tagidx(Monitor *m)
+{
+  unsigned n = 0;
+  for (unsigned i = 0; !(m->tagset[m->seltags] & 1 << i); i++)
+    n = i + 1;
+
+	return n;
 }
