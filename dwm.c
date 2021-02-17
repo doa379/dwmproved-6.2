@@ -2220,17 +2220,14 @@ occview(const Arg *arg)
 	for (Client *c = selmon->clients; c; c = c->next)
 		occ |= c->tags;
 
-  for (unsigned i = 0; i < (Ntags - 1) && !(occ << 1 & selmon->tagset[selmon->seltags]); i++)
+  if (!occ)
+    return;
+  
+  do
+  {
   	shiftview(arg);
-/*
-  Arg tag;
-  if(arg->i > 0)
-    tag.ui = ((selmon->tagset[selmon->seltags] << arg->i)
-              | (selmon->tagset[selmon->seltags] >> (Ntags - 1 - arg->i))) & occ;
-  else
-    tag.ui = ((selmon->tagset[selmon->seltags] >> -arg->i)
-              | (selmon->tagset[selmon->seltags] << (Ntags - 1 + arg->i))) & occ;
-              view(&tag);*/
+	}
+  while (!(occ & 1 << seltagidx(selmon)));
 }
 
 void
@@ -2252,8 +2249,8 @@ tcl(Monitor *m)
     return;
 
   c = nexttiled(m->clients);
-  unsigned j = tag_idx(selmon->tagset[selmon->seltags]);
-  mw = m->mfact[j] * m->ww;
+  unsigned j = seltagidx(selmon);
+  mw = m->T[j].mfact * m->ww;
   sw = (m->ww - mw) / 2;
   bdw = (2 * c->bw);
   resize(c,
