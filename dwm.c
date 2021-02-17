@@ -2166,7 +2166,10 @@ zoom(const Arg *arg)
 	if (c == nexttiled(selmon->clients))
 		if (!c || !(c = nexttiled(c->next)))
 			return;
+	//selmon->lt[1] = &layouts[1];
+  //arrange(selmon);
 	pop(c);
+	//selmon->lt[1] = &layouts[0];
 }
 
 int
@@ -2226,14 +2229,37 @@ occview(const Arg *arg)
   do
   {
   	shiftview(arg);
-	}
-  while (!(occ & 1 << seltagidx(selmon)));
+	} while (!(occ & 1 << seltagidx(selmon)));
 }
 
 void
 focusview(const Arg *arg)
 {
+	Client *c = NULL, *i;
 
+	if (arg->i > 0) {
+		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
+		if (!c)
+    {
+			occview(arg);
+			for (c = selmon->clients; c && !ISVISIBLE(c); c = c->next);
+    }
+	} else {
+		for (i = selmon->clients; i != selmon->sel; i = i->next)
+			if (ISVISIBLE(i))
+				c = i;
+		if (!c)
+    {
+      occview(arg);
+			for (i = selmon->sel; i; i = i->next)
+      	if (ISVISIBLE(i))
+      		c = i;
+    }
+	}
+	if (c) {
+		focus(c);
+		restack(selmon);
+	}
 }
 
 void
