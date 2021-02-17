@@ -1136,10 +1136,20 @@ maprequest(XEvent *e)
 void
 monocle(Monitor *m)
 {
-	Client *c;
+	Client *c = m->sel;
 
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
+  if (!c->isfullscreen)
+  {
+		c->fx = c->x;
+		c->fy = c->y;
+		c->fw = c->w;
+		c->fh = c->h;
 		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
+  }
+  else
+		resize(c, c->fx, c->fy, c->fw, c->fh, 0);
+  
+  c->isfullscreen = !c->isfullscreen;
 }
 
 void
@@ -1743,22 +1753,14 @@ togglebar(const Arg *arg)
 void
 togglefloating(const Arg *arg)
 {
-	if (!selmon->sel)
-		return;
-	if (selmon->sel->isfullscreen) /* no support for fullscreen windows */
-		return;
-	selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
-	if (selmon->sel->isfloating)
-		resize(selmon->sel, selmon->sel->fx, selmon->sel->fy,
-			selmon->sel->fw, selmon->sel->fh, False);
-	else {
-		selmon->sel->fx = selmon->sel->x;
-		selmon->sel->fy = selmon->sel->y;
-		selmon->sel->fw = selmon->sel->w;
-		selmon->sel->fh = selmon->sel->h;
-	}
-  
-	arrange(selmon);
+  if (!selmon->sel)
+    return;
+  if (selmon->sel->isfullscreen) /* no support for fullscreen windows */
+    return;
+  selmon->sel->isfloating = !selmon->sel->isfloating || selmon->sel->isfixed;
+  if (selmon->sel->isfloating)
+    resize(selmon->sel, selmon->sel->x, selmon->sel->y, selmon->sel->w, selmon->sel->h, 0);
+  arrange(selmon);
 }
 
 void
