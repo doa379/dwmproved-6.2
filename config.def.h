@@ -38,9 +38,8 @@ static const Layout layouts[] = {
 	{ NULL },    /* no layout function means floating behavior */
 	{ tile },
 	{ monocle },
-  //{ fullscreen }, no border, no bar
   { tcl },
-  //{ grid },
+  { grid },
 };
 
 /* key definitions */
@@ -79,9 +78,12 @@ static Key keys[] = {
 	{ MODKEY,                       XK_minus,  shiftview,      {.i = -1 } },
 	{ MODKEY,                       XK_equal,  shiftview,      {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
-	{ MODKEY,                       XK_f,      togglefloating, {0} },
+	{ MODKEY,                       XK_f,      fullscreen,     {0} },
+	{ MODKEY,                       XK_s,      togglefloating, {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[1] } },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2] } },
+	{ MODKEY,                       XK_n,      setlayout,      {.v = &layouts[3] } },
+	{ MODKEY,                       XK_g,      setlayout,      {.v = &layouts[4] } },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY,                       XK_BackSpace, view,        {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_BackSpace, tag,         {.ui = ~0 } },

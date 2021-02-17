@@ -94,7 +94,7 @@ struct Client {
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
 	unsigned int tags;
-	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+	int isfixed, isfloating, isurgent, neverfocus, oldstate, ismonocle, isfullscreen;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -242,7 +242,9 @@ static unsigned seltagidx(Monitor *);
 static void shiftview(const Arg *);
 static void occview(const Arg *);
 static void focusview(const Arg *);
+static void fullscreen(const Arg *);
 static void tcl(Monitor *);
+static void grid(Monitor *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -1094,7 +1096,7 @@ manage(Window w, XWindowAttributes *wa)
 	if (!c->isfloating)
 		c->isfloating = c->oldstate = trans != None || c->isfixed;
 	if (c->isfloating)
-		XRaiseWindow(dpy, c->win);
+  	XRaiseWindow(dpy, c->win);
 	attach(c);
 	attachstack(c);
 	XChangeProperty(dpy, root, netatom[NetClientList], XA_WINDOW, 32, PropModeAppend,
@@ -1138,7 +1140,7 @@ monocle(Monitor *m)
 {
 	Client *c = m->sel;
 
-  if (!c->isfullscreen)
+  if (!c->ismonocle)
   {
 		c->fx = c->x;
 		c->fy = c->y;
@@ -1149,7 +1151,7 @@ monocle(Monitor *m)
   else
 		resize(c, c->fx, c->fy, c->fw, c->fh, 0);
   
-  c->isfullscreen = !c->isfullscreen;
+  c->ismonocle = !c->ismonocle;
 }
 
 void
@@ -1392,7 +1394,7 @@ restack(Monitor *m)
 	if (!m->sel)
 		return;
 	if (m->sel->isfloating || !m->lt[1]->arrange)
-		XRaiseWindow(dpy, m->sel->win);
+  	XRaiseWindow(dpy, m->sel->win);
 	if (m->lt[1]->arrange) {
 		wc.stack_mode = Below;
 		wc.sibling = m->barwin;
@@ -2239,7 +2241,9 @@ focusview(const Arg *arg)
 {
 	Client *c = NULL, *i;
 
-	if (arg->i > 0) {
+  if (!selmon->sel)
+    occview(arg);
+	else if (arg->i > 0) {
 		for (c = selmon->sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
     {
@@ -2262,6 +2266,14 @@ focusview(const Arg *arg)
 		focus(c);
 		restack(selmon);
 	}
+}
+
+void
+fullscreen(const Arg *arg)
+{
+	Client *c = selmon->sel;
+  if (c)
+		setfullscreen(c, !c->isfullscreen);
 }
 
 void
@@ -2330,4 +2342,33 @@ tcl(Monitor *m)
     if (h != m->wh)
       y = c->y + HEIGHT(c);
   }
+}
+
+void
+grid(Monitor *m)
+{
+	unsigned int i, n, cx, cy, cw, ch, aw, ah, cols, rows;
+	Client *c;
+
+	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next))
+		n++;
+
+	/* grid dimensions */
+	for(rows = 0; rows <= n / 2; rows++)
+		if(rows*rows >= n)
+			break;
+	cols = (rows && (rows - 1) * rows >= n) ? rows - 1 : rows;
+
+	/* window geoms (cell height/width) */
+	ch = m->wh / (rows ? rows : 1);
+	cw = m->ww / (cols ? cols : 1);
+	for(i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
+		cx = m->wx + (i / rows) * cw;
+		cy = m->wy + (i % rows) * ch;
+		/* adjust height/width of last row/column's windows */
+		ah = ((i + 1) % rows == 0) ? m->wh - ch * rows : 0;
+		aw = (i >= rows * (cols - 1)) ? m->ww - cw * cols : 0;
+		resize(c, cx, cy, cw - 2 * c->bw + aw, ch - 2 * c->bw + ah, False);
+		i++;
+	}
 }
