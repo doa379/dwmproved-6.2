@@ -1393,13 +1393,13 @@ restack(Monitor *m)
 	drawbar(m);
 	if (!m->sel)
 		return;
-	if (m->sel->isfloating || !m->lt[1]->arrange)
+	if (!m->lt[1]->arrange)
   	XRaiseWindow(dpy, m->sel->win);
 	if (m->lt[1]->arrange) {
 		wc.stack_mode = Below;
 		wc.sibling = m->barwin;
 		for (c = m->stack; c; c = c->snext)
-			if (!c->isfloating && ISVISIBLE(c)) {
+			if (ISVISIBLE(c)) {
 				XConfigureWindow(dpy, c->win, CWSibling|CWStackMode, &wc);
 				wc.sibling = c->win;
 			}
