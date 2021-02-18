@@ -10,7 +10,7 @@ with the tagbar. Each tag preserves its state. There are no additional
 dynamical allocations. Great performance.
 
 ![alt 
-!text](https://github.com/doa379/dwmproved-6.2-next/blob/origin/screenshot.jpg?raw=true)
+!text](https://github.com/doa379/dwmproved-6.2-next/blob/master/screenshot.jpg?raw=true)
 
 
 dwm - dynamic window manager
