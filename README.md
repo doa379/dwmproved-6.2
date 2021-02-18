@@ -1,3 +1,18 @@
+dwmproved-6.2
+=============
+
+This is dwm with a number of amendments to improve usability. Most 
+notably, dwmproved relies on a manual action to change the arrangement 
+of windows. This is more conducive to floating windows where the 
+preservation of window dimensions gives the best visual appearance. 
+Therefore tiling is discretionary. The titlebar has been integrated 
+with the tagbar. Each tag preserves its state. There are no additional 
+dynamical allocations. Great performance.
+
+![alt 
+!text](https://github.com/doa379/dwmproved-6.2-next/blob/origin/screenshot.jpg?raw=true)
+
+
 dwm - dynamic window manager
 ============================
 dwm is an extremely fast, small, and dynamic window manager for X.
