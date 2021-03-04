@@ -2228,12 +2228,11 @@ occview(const Arg *arg)
   int seltags = selmon->tagset[selmon->seltags],
     s = arg->i > 0 ? (seltags << arg->i) | (seltags >> (Ntags - 1 - arg->i)) :
     	(seltags >> -arg->i) | (seltags << (Ntags - 1 + arg->i));
-  for (;;)
+  do
   {
 		s = arg->i > 0 ? (s << arg->i) | (s >> (Ntags - 1 - arg->i)) : (s >> -arg->i) | (s << (Ntags - 1 + arg->i));
-    if (occ & s)
-      break;
   }
+  while (!(occ & s));
   
   Arg tag = { .i = s };
   view(&tag);
