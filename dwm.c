@@ -2209,7 +2209,7 @@ void
 shiftview(const Arg *arg)
 {
   Arg tag = {
-    .ui = arg->i > 0 ?
+    .i = arg->i > 0 ?
     (selmon->tagset[selmon->seltags] << arg->i) | (selmon->tagset[selmon->seltags] >> (Ntags - 1 - arg->i)) :
     (selmon->tagset[selmon->seltags] >> -arg->i) | (selmon->tagset[selmon->seltags] << (Ntags - 1 + arg->i)) };
   view(&tag);
@@ -2224,11 +2224,19 @@ occview(const Arg *arg)
 
   if (!occ)
     return;
-  
-  do
+
+  int seltags = selmon->tagset[selmon->seltags],
+    s = arg->i > 0 ? (seltags << arg->i) | (seltags >> (Ntags - 1 - arg->i)) :
+    	(seltags >> -arg->i) | (seltags << (Ntags - 1 + arg->i));
+  for (;;)
   {
-  	shiftview(arg);
-	} while (!(occ & 1 << seltagidx(selmon)));
+		s = arg->i > 0 ? (s << arg->i) | (s >> (Ntags - 1 - arg->i)) : (s >> -arg->i) | (s << (Ntags - 1 + arg->i));
+    if (occ & s)
+      break;
+  }
+  
+  Arg tag = { .i = s };
+  view(&tag);
 }
 
 void
