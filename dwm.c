@@ -2079,11 +2079,10 @@ view(const Arg *arg)
   	return;
   selmon->seltags ^= 1; /* toggle sel tagset */
   if (arg->ui & TAGMASK)
-  {
     selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
-		updatebarpos(selmon);
-  	XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
-  }
+  
+	updatebarpos(selmon);
+  XMoveResizeWindow(dpy, selmon->barwin, selmon->wx, selmon->by, selmon->ww, bh);
   focus(NULL);
   arrange(selmon);
 }
