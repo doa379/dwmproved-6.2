@@ -2224,9 +2224,11 @@ occview(const Arg *arg)
   if (!occ)
     return;
 
-  int seltags = selmon->tagset[selmon->seltags],
+  int s = selmon->tagset[selmon->seltags];
+  /*
     s = arg->i > 0 ? (seltags << arg->i) | (seltags >> (Ntags - 1 - arg->i)) :
     	(seltags >> -arg->i) | (seltags << (Ntags - 1 + arg->i));
+  */
   do
   {
 		s = arg->i > 0 ? (s << arg->i) | (s >> (Ntags - 1 - arg->i)) : (s >> -arg->i) | (s << (Ntags - 1 + arg->i));
