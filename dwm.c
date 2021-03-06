@@ -40,6 +40,7 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
+#include <sys/poll.h>
 
 #include "drw.h"
 #include "util.h"
@@ -244,6 +245,7 @@ static void focusview(const Arg *);
 static void fullscreen(const Arg *);
 static void tcl(Monitor *);
 static void grid(Monitor *);
+static void read_statusfile(void);
 
 /* variables */
 static const char broken[] = "broken";
@@ -749,10 +751,6 @@ drawbar(Monitor *m)
     w = TEXTW(m->T[i].name);
     drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
     drw_text(drw, x, 0, w, bh, lrpad / 2, m->T[i].name, urg & 1 << i);
-    /* drw_rect(drw, x + boxs, boxs, boxw, boxw,
-       m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
-       urg & 1 << i); */
-
     if (m->tagset[m->seltags] & 1 << i && m->sel && m->sel->isfloating)
       drw_rect(drw, x + boxs, boxs, boxw, boxw, m->sel->isfixed, 0);
     x += w;
@@ -1408,9 +1406,21 @@ run(void)
 	XEvent ev;
 	/* main event loop */
 	XSync(dpy, False);
-	while (running && !XNextEvent(dpy, &ev))
-		if (handler[ev.type])
-			handler[ev.type](&ev); /* call handler */
+  struct pollfd pfd;
+  pfd.fd = ConnectionNumber(dpy);
+  pfd.events = POLLIN;
+  while (running)
+  {
+    read_statusfile();
+    drawbar(selmon);
+    poll(&pfd, 1, upd_intvl * 1000);
+    while (XPending(dpy))
+    {
+      XNextEvent(dpy, &ev);
+      if (handler[ev.type])
+        handler[ev.type](&ev); /* call handler */
+    }
+  }
 }
 
 void
@@ -2378,4 +2388,16 @@ grid(Monitor *m)
 			cn++;
 		}
 	}
+}
+
+void
+read_statusfile(void)
+{
+  FILE *fp = fopen(statusfile, "r");
+  if (fp)
+  {
+		fgets(stext, sizeof stext, fp);
+  	fclose(fp);
+    stext[strlen(stext) - 1] = '\0';
+  }
 }

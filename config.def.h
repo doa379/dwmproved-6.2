@@ -18,6 +18,8 @@ static const char *colors[][3]      = {
 	[SchemeNorm] = { col_gray3, col_gray1, col_cyan },
 	[SchemeSel]  = { col_gray4, col_cyan,  col_yellow  },
 };
+static const char statusfile[]      = "/tmp/status";
+static const unsigned int upd_intvl = 15;   /* in secs */
 
 static const Rule rules[] = {
 	/* xprop(1):
