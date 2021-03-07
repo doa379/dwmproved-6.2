@@ -61,7 +61,7 @@
 
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
-enum { SchemeNorm, SchemeSel }; /* color schemes */
+enum { SchemeNorm, SchemeSel, Scheme0, Scheme1, Scheme2, Scheme3, Scheme4, Scheme5, Scheme6, Scheme7, Scheme8, Scheme9, Scheme10, Scheme11, Scheme12 }; /* color schemes */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
@@ -246,6 +246,7 @@ static void fullscreen(const Arg *);
 static void tcl(Monitor *);
 static void grid(Monitor *);
 static void read_statusfile(void);
+static unsigned tokenize_string(unsigned, char [][64], char *, const char *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -286,7 +287,8 @@ static Window root, wmcheckwin;
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[Ntags > 31 ? -1 : 1]; };
-
+static char section[LENGTH(colors)][64];
+static char stext_dup[sizeof stext];
 /* function implementations */
 void
 applyrules(Client *c)
@@ -720,9 +722,17 @@ drawbar(Monitor *m)
 
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
-		drw_setscheme(drw, scheme[SchemeNorm]);
 		sw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
-		drw_text(drw, m->ww - sw, 0, sw, bh, 0, stext, 0);
+    strcpy(stext_dup, stext);
+    unsigned N = tokenize_string(sizeof section[0], section, stext_dup, statusdelim),
+      offset = 0;
+    N = N > LENGTH(colors) ? LENGTH(colors) : N;
+    for (unsigned i = 0; i < N; i++)
+    {
+      drw_setscheme(drw, scheme[i + 2]);
+      drw_text(drw, m->ww - sw + offset, 0, sw, bh, 0, section[i], 0);
+      offset += TEXTW(section[i]) - lrpad * 0.75;
+    }
 	}
 
 	for (c = m->clients; c; c = c->next) {
@@ -2400,4 +2410,25 @@ read_statusfile(void)
   	fclose(fp);
     stext[strlen(stext) - 1] = '\0';
   }
+}
+
+unsigned
+tokenize_string(unsigned TOKLEN, char array[][TOKLEN], char *string, const char *delim)
+{
+  unsigned n = 0;
+  char *token = strtok(string, delim);
+  for (n = 0; token; n++)
+  {
+    if (strlen(token) < TOKLEN)
+      strcpy(array[n], token);
+    else
+    {
+      strncpy(array[n], token, TOKLEN - 1);
+      array[n][TOKLEN - 1] = '\0';
+    }
+
+    token = strtok(NULL, delim);
+  }
+
+  return n;
 }

@@ -11,15 +11,55 @@ static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
+static const char col_gray10[]      = "#1a1a1a";
+static const char col_gray20[]      = "#333333";
+static const char col_gray30[]      = "#4d4d4d";
+static const char col_gray40[]      = "#666666";
+static const char col_gray50[]      = "#808080";
+static const char col_gray60[]      = "#999999";
+static const char col_gray70[]      = "#b3b3b3";
+static const char col_gray80[]      = "#cccccc";
+static const char col_gray90[]      = "#e6e6e6";
 static const char col_cyan[]        = "#005577";
+static const char col_cyan30[]      = "#006e99";
+static const char col_cyan40[]      = "#0092cc";
+static const char col_cyan50[]      = "#00b7ff";
+static const char col_cyan60[]      = "#33c5ff";
+static const char col_cyan70[]      = "#66d4ff";
+static const char col_cyan80[]      = "#99e2ff";
+static const char col_cyan90[]      = "#ccf1ff";
 static const char col_yellow[]      = "#ffff00";
+static const char col_yellow70[]    = "#ffff66";
+static const char col_yellow80[]    = "#ffff99";
+static const char col_yellow90[]    = "#ffffcc";
+static const char col_magenta[]     = "#750075";
+static const char col_magenta70[]   = "#ff66ff";
+static const char col_magenta80[]   = "#ff99ff";
+static const char col_magenta90[]   = "#ffccff";
+static const char col_red[]         = "#ff0000";
+
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_cyan },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_yellow  },
+	[SchemeNorm] = { col_gray80,    col_gray10, col_cyan   },
+	[SchemeSel]  = { col_gray80,    col_cyan,   col_yellow },
+	[Scheme0]    = { col_cyan80,    col_gray10, "#000000"  },
+	[Scheme1]    = { col_cyan80,    col_gray10, "#000000"  },
+	[Scheme2]    = { col_yellow80,  col_gray10, "#000000"  },
+	[Scheme3]    = { col_magenta80, col_gray10, "#000000"  },
+	[Scheme4]    = { col_cyan80,    col_gray10, "#000000"  },
+	[Scheme5]    = { col_yellow80,  col_gray10, "#000000"  },
+	[Scheme6]    = { col_magenta80, col_gray10, "#000000"  },
+	[Scheme7]    = { col_gray80,    col_gray10, "#000000"  },
+	[Scheme8]    = { col_cyan80,    col_gray10, "#000000"  },
+	[Scheme9]    = { col_red,       col_cyan,   "#000000"  },
+	[Scheme10]   = { col_gray10,    col_gray80, "#000000"  },
+	[Scheme11]   = { col_gray10,    col_gray80, "#000000"  },
+	[Scheme12]   = { col_gray10,    col_gray80, "#000000"  },
 };
+
 static const char statusfile[]      = "/tmp/status";
 static const unsigned int upd_intvl = 15;   /* in secs */
+static const char *statusdelim = "|";
 
 static const Rule rules[] = {
 	/* xprop(1):
