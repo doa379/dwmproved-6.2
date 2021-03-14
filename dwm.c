@@ -650,7 +650,7 @@ createmon(void)
 
 	m = ecalloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
-  for (unsigned i = 0; i < Ntags; i++)
+  for (unsigned i = 0; i < Ntags - 1; i++)
   {
     m->T[i].sel[0] = '\0';
 		m->T[i].mfact = mfact;
@@ -756,7 +756,7 @@ drawbar(Monitor *m)
       strcpy(m->T[i].sel, m->sel->name);
     }
     else
-      snprintf(m->T[i].name, (sizeof m->T[i].name - 1) / 2, "%d:%s", i + 1, m->T[i].sel);
+      snprintf(m->T[i].name, (sizeof m->T[i].name - 1) * 0.5, "%d:%s", i + 1, m->T[i].sel);
     
     w = TEXTW(m->T[i].name);
     drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
@@ -1605,7 +1605,7 @@ setup(void)
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
-	bh = drw->fonts->h;
+	bh = drw->fonts->h - 2;
 	updategeom();
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);

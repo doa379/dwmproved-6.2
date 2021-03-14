@@ -59,7 +59,7 @@ static const char *colors[][3]      = {
 
 static const char statusfile[]      = "/tmp/status";
 static const unsigned int upd_intvl = 15;   /* in secs */
-static const char *statusdelim = "|";
+static const char *statusdelim = "|#!>";
 
 static const Rule rules[] = {
 	/* xprop(1):
