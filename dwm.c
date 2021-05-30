@@ -67,6 +67,7 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
 enum { ClkTagBar, ClkStatusText, ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
+enum { TOKLEN = 64 };
 
 typedef union {
 	int i;
@@ -93,7 +94,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
-	unsigned int tags;
+	unsigned int tags, n;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, ismonocle, isfullscreen;
 	Client *next;
 	Client *snext;
@@ -115,6 +116,7 @@ typedef struct {
 typedef struct
 {
   char name[48], sel[32];
+  unsigned n;
 	float mfact;
 	int nmaster;
 } Tag;
@@ -246,7 +248,7 @@ static void fullscreen(const Arg *);
 static void tcl(Monitor *);
 static void grid(Monitor *);
 static void read_statusfile(void);
-static unsigned tokenize_string(unsigned, char [][64], char *, const char *);
+static unsigned tokenize_string(char [][TOKLEN], char *, const char *);
 
 /* variables */
 static const char broken[] = "broken";
@@ -287,7 +289,7 @@ static Window root, wmcheckwin;
 
 /* compile-time check if all tags fit into an unsigned int bit array. */
 struct NumTags { char limitexceeded[Ntags > 31 ? -1 : 1]; };
-static char section[LENGTH(colors)][64];
+static char section[LENGTH(colors)][TOKLEN];
 static char stext_dup[sizeof stext];
 /* function implementations */
 void
@@ -724,7 +726,7 @@ drawbar(Monitor *m)
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		sw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
     strcpy(stext_dup, stext);
-    unsigned N = tokenize_string(sizeof section[0], section, stext_dup, statusdelim),
+    unsigned N = tokenize_string(section, stext_dup, statusdelim),
       offset = 0;
     N = N > LENGTH(colors) ? LENGTH(colors) : N;
     for (unsigned i = 0; i < N; i++)
@@ -735,10 +737,15 @@ drawbar(Monitor *m)
     }
 	}
 
+  unsigned j = 0;
 	for (c = m->clients; c; c = c->next) {
 		occ |= c->tags;
 		if (c->isurgent)
 			urg |= c->tags;
+    if (ISVISIBLE(c))
+      j++;
+
+    c->n = j;
   }
 	x = 0;
 	for (i = 0; i < Ntags - 1; i++)
@@ -752,11 +759,21 @@ drawbar(Monitor *m)
     }
     else if (m->tagset[m->seltags] & 1 << i && m->sel)
     {
-      snprintf(m->T[i].name, sizeof m->T[i].name - 1, "%d:%s", i + 1, m->sel->name);
+      if (j > 1)
+        snprintf(m->T[i].name, sizeof m->T[i].name - 1, "%d:[%d/%d] %s", i + 1, m->sel->n, j, m->sel->name);
+      else
+        snprintf(m->T[i].name, sizeof m->T[i].name - 1, "%d: %s", i + 1, m->sel->name);
+
       strcpy(m->T[i].sel, m->sel->name);
+      m->T[i].n = j;
     }
     else
-      snprintf(m->T[i].name, (sizeof m->T[i].name - 1) * 0.5, "%d:%s", i + 1, m->T[i].sel);
+    {
+      if (m->T[i].n > 1)
+        snprintf(m->T[i].name, (sizeof m->T[i].name - 1) * 0.5, "%d:[%d] %s", i + 1, m->T[i].n, m->T[i].sel);
+      else
+        snprintf(m->T[i].name, (sizeof m->T[i].name - 1) * 0.5, "%d:%s", i + 1, m->T[i].sel);
+    }
     
     w = TEXTW(m->T[i].name);
     drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
@@ -2413,7 +2430,7 @@ read_statusfile(void)
 }
 
 unsigned
-tokenize_string(unsigned TOKLEN, char array[][TOKLEN], char *string, const char *delim)
+tokenize_string(char array[][TOKLEN], char *string, const char *delim)
 {
   unsigned n = 0;
   char *token = strtok(string, delim);
