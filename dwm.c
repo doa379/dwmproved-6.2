@@ -41,6 +41,7 @@
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
 #include <sys/poll.h>
+#include <time.h>
 
 #include "drw.h"
 #include "util.h"
@@ -1436,17 +1437,25 @@ run(void)
   struct pollfd pfd;
   pfd.fd = ConnectionNumber(dpy);
   pfd.events = POLLIN;
+  unsigned intvl = upd_intvl, diff;
+  time_t t0;
   while (running)
   {
-    read_statusfile();
-    drawbar(selmon);
-    poll(&pfd, 1, upd_intvl * 1000);
-    while (XPending(dpy))
+    t0 = time(NULL);
+    if (!poll(&pfd, 1, intvl * 1000))
     {
-      XNextEvent(dpy, &ev);
-      if (handler[ev.type])
-        handler[ev.type](&ev); /* call handler */
+      read_statusfile();
+      drawbar(selmon);
+      intvl = upd_intvl;
     }
+
+    diff = time(NULL) - t0;
+    if (diff < upd_intvl - 1)
+      intvl = upd_intvl - diff;
+
+    while (XCheckMaskEvent(dpy, -1, &ev))
+      if (handler[ev.type])
+        handler[ev.type](&ev);
   }
 }
 
