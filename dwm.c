@@ -1454,9 +1454,13 @@ run(void)
     diff = time(NULL) - t0;
     if (diff < upd_intvl - 1)
       intvl = upd_intvl - diff;
-    while (XCheckMaskEvent(dpy, -1, &ev))
+    while(XPending(dpy))
+    {
+      XNextEvent(dpy, &ev); 
       if (handler[ev.type])
         handler[ev.type](&ev);
+    }
+
   }
 }
 
