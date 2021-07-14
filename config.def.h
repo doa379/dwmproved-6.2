@@ -5,6 +5,7 @@ static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
+static const int sloppyfocus        = 0;
 static const char *fonts[]          = { "sans-serif:pixelsize=10" };
 static const char dmenufont[]       = "sans-serif:pixelsize=16";
 static const char col_gray1[]       = "#222222";
@@ -59,7 +60,7 @@ static const char *colors[][3]      = {
 
 static const char statusfile[]      = "/tmp/status";
 static const unsigned int upd_intvl = 15;   /* in secs */
-static const char *statusdelim = "|#!>";
+static const char statusdelim[]     = "|#!>";
 
 static const Rule rules[] = {
 	/* xprop(1):

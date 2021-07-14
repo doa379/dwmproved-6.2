@@ -40,7 +40,7 @@
 #include <X11/extensions/Xinerama.h>
 #endif /* XINERAMA */
 #include <X11/Xft/Xft.h>
-#include <sys/poll.h>
+#include <poll.h>
 #include <time.h>
 
 #include "drw.h"
@@ -802,6 +802,8 @@ drawbars(void)
 void
 enternotify(XEvent *e)
 {
+  if (!sloppyfocus)
+    return;
 	Client *c;
 	Monitor *m;
 	XCrossingEvent *ev = &e->xcrossing;
@@ -1452,7 +1454,6 @@ run(void)
     diff = time(NULL) - t0;
     if (diff < upd_intvl - 1)
       intvl = upd_intvl - diff;
-
     while (XCheckMaskEvent(dpy, -1, &ev))
       if (handler[ev.type])
         handler[ev.type](&ev);
