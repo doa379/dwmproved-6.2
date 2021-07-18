@@ -1454,7 +1454,7 @@ run(void)
     diff = time(NULL) - t0;
     if (diff < upd_intvl - 1)
       intvl = upd_intvl - diff;
-    while(XPending(dpy))
+    while (XPending(dpy))
     {
       XNextEvent(dpy, &ev); 
       if (handler[ev.type])
