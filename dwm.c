@@ -248,7 +248,6 @@ static void focusview(const Arg *);
 static void fullscreen(const Arg *);
 static void tcl(Monitor *);
 static void grid(Monitor *);
-static void read_statusfile(void);
 static unsigned tokenize_string(char [][TOKLEN], char *, const char *);
 
 /* variables */
@@ -1446,7 +1445,6 @@ run(void)
     t0 = time(NULL);
     if (!poll(&pfd, 1, intvl * 1000))
     {
-      read_statusfile();
       drawbar(selmon);
       intvl = upd_intvl;
     }
@@ -2429,18 +2427,6 @@ grid(Monitor *m)
 			cn++;
 		}
 	}
-}
-
-void
-read_statusfile(void)
-{
-  FILE *fp = fopen(statusfile, "r");
-  if (fp)
-  {
-		fgets(stext, sizeof stext, fp);
-  	fclose(fp);
-    stext[strlen(stext) - 1] = '\0';
-  }
 }
 
 unsigned

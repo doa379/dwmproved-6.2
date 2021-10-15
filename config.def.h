@@ -45,8 +45,8 @@ static const char *colors[][3]      = {
 	[SchemeNorm] = { col_gray80,    col_gray10, col_cyan   },
 	[SchemeSel]  = { col_gray80,    col_cyan,   col_yellow },
   */
-	[SchemeNorm] = { col_gray1,    col_gray80, col_cyan   },
-	[SchemeSel]  = { col_gray1,    col_cyan80,   col_yellow },
+	[SchemeNorm] = { col_gray1,    col_cyan90,   col_cyan   },
+	[SchemeSel]  = { col_gray1,    col_cyan70,   col_yellow },
   /* Scheme ordering for colored status bar */
   /*
 	[Scheme0]    = { col_cyan80,    col_gray10, "#000000"  },
@@ -63,19 +63,19 @@ static const char *colors[][3]      = {
 	[Scheme11]   = { col_gray10,    col_gray80, "#000000"  },
 	[Scheme12]   = { col_gray10,    col_gray80, "#000000"  },
   */
-	[Scheme0]    = { col_gray1,    col_gray80, "#000000"  },
-	[Scheme1]    = { col_gray1,    col_cyan80, "#000000"  },
-	[Scheme2]    = { col_gray1,    col_yellow80, "#000000"  },
-	[Scheme3]    = { col_gray1,    col_magenta80, "#000000"  },
-	[Scheme4]    = { col_gray1,    col_gray80, "#000000"  },
-	[Scheme5]    = { col_gray1,    col_cyan80, "#000000"  },
-	[Scheme6]    = { col_gray1,    col_yellow80, "#000000"  },
-	[Scheme7]    = { col_gray1,    col_magenta80, "#000000"  },
-	[Scheme8]    = { col_gray1,    col_gray80, "#000000"  },
-	[Scheme9]    = { col_gray1,    col_cyan80, "#000000"  },
-	[Scheme10]   = { col_gray1,    col_yellow80, "#000000"  },
-	[Scheme11]   = { col_gray1,    col_magenta80, "#000000"  },
-	[Scheme12]   = { col_gray1,    col_gray80, "#000000"  },
+	[Scheme0]    = { col_gray1,    col_gray90, "#000000"  },
+	[Scheme1]    = { col_gray1,    col_cyan90, "#000000"  },
+	[Scheme2]    = { col_gray1,    col_yellow90, "#000000"  },
+	[Scheme3]    = { col_gray1,    col_magenta90, "#000000"  },
+	[Scheme4]    = { col_gray1,    col_gray90, "#000000"  },
+	[Scheme5]    = { col_gray1,    col_cyan90, "#000000"  },
+	[Scheme6]    = { col_gray1,    col_yellow90, "#000000"  },
+	[Scheme7]    = { col_gray1,    col_magenta90, "#000000"  },
+	[Scheme8]    = { col_gray1,    col_gray90, "#000000"  },
+	[Scheme9]    = { col_gray1,    col_cyan90, "#000000"  },
+	[Scheme10]   = { col_gray1,    col_yellow90, "#000000"  },
+	[Scheme11]   = { col_gray1,    col_magenta90, "#000000"  },
+	[Scheme12]   = { col_gray1,    col_gray90, "#000000"  },
 };
 
 static const char statusfile[]      = "/tmp/status";
